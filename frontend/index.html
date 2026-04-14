@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TZ Analyzer - Анализ технических заданий</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1 class="logo">TZ Analyzer</h1>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-link active" data-page="upload">
+                <span class="nav-icon">📄</span>
+                <span class="nav-text">Анализ</span>
+            </a>
+            <a href="#" class="nav-link" data-page="history">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">История оценок</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="language-badge" id="languageBadge">РУС</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="app-header">
+            <h2 id="pageTitle">Анализ ТЗ</h2>
+        </header>
+
+        <!-- Upload Page -->
+        <div class="page" id="uploadPage" data-page="upload">
+            <div class="upload-container">
+                <div class="upload-zone-header">
+                    <h3>Загрузить документ</h3>
+                    <div class="header-buttons-upload">
+                        <button class="btn btn-icon" id="infoBtn" title="Информация о критериях оценки">ℹ️</button>
+                        <button class="btn btn-secondary" id="demoBtn">Демо</button>
+                    </div>
+                </div>
+                <div class="upload-zone" id="uploadZone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p class="upload-text">Перетащите файл ТЗ или нажмите для выбора</p>
+                    <p class="upload-subtitle">Поддерживаются форматы .docx и .pdf</p>
+                    <button class="btn btn-secondary" id="browseBtn">Выбрать файл</button>
+                    <input type="file" id="fileInput" hidden accept=".docx,.pdf">
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Page -->
+        <div class="page hidden" id="resultsPage" data-page="results">
+            <!-- Score Header -->
+            <section class="score-header">
+                <div class="score-gauge-container">
+                    <svg class="score-gauge" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="80" class="gauge-background"></circle>
+                        <circle cx="100" cy="100" r="80" class="gauge-foreground" id="gaugeForeground"></circle>
+                    </svg>
+                    <div class="score-text">
+                        <div class="score-number" id="scoreNumber">0</div>
+                        <div class="score-label">из 100</div>
+                    </div>
+                </div>
+                <div class="header-info">
+                    <h2 id="resultFilename">Имя файла</h2>
+                    <div class="info-row">
+                        <span class="language-badge" id="resultLanguageBadge">РУС</span>
+                        <span id="resultLanguageText">Русский язык</span>
+                    </div>
+                    <div class="header-buttons">
+                        <button class="btn btn-primary" id="downloadCorrectedBtn" disabled>Скачать исправленную версию</button>
+                        <button class="btn btn-secondary" id="exportExcelBtn">Экспорт Excel</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Score Comparison -->
+            <section class="score-comparison hidden" id="scoreComparison">
+                <div class="comparison-box before">
+                    <div class="comparison-label">До исправления</div>
+                    <div class="comparison-score" id="comparisonBefore">62</div>
+                </div>
+                <div class="comparison-arrow">→</div>
+                <div class="comparison-box after">
+                    <div class="comparison-label">После исправления</div>
+                    <div class="comparison-score" id="comparisonAfter">85</div>
+                    <div class="comparison-improvement" id="comparisonImprovement">+23</div>
+                </div>
+            </section>
+
+            <!-- Version History -->
+            <section class="version-history" id="versionHistory"></section>
+
+            <!-- Score Breakdown -->
+            <section class="score-breakdown">
+                <h3>Разбор оценки</h3>
+                <div class="breakdown-bars" id="breakdownBars"></div>
+            </section>
+
+            <!-- Issues Section -->
+            <section class="issues-section">
+                <h3>Выявленные проблемы</h3>
+                <div class="issues-list" id="issuesList"></div>
+            </section>
+
+            <!-- Suggestions Section -->
+            <section class="suggestions-section">
+                <h3>Рекомендации</h3>
+                <ol class="suggestions-list" id="suggestionsList"></ol>
+            </section>
+
+            <!-- Summary Section -->
+            <section class="summary-section">
+                <h3>Общая оценка</h3>
+                <p class="summary-text" id="summaryText"></p>
+            </section>
+
+            <!-- Action Buttons -->
+            <section class="action-buttons">
+                <button class="btn btn-primary" id="applyFixesBtn">Применить выбранные исправления</button>
+                <button class="btn btn-secondary" id="resetBtn">Сбросить</button>
+            </section>
+        </div>
+
+        <!-- History Page -->
+        <div class="page hidden" id="historyPage" data-page="history">
+            <div class="history-container">
+                <button class="btn btn-primary" id="exportAllBtn">Экспорт всех оценок в Excel</button>
+                <div class="table-responsive">
+                    <table class="records-table" id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th>Файл</th>
+                                <th>Язык</th>
+                                <th>Оценка до</th>
+                                <th>Оценка после</th>
+                                <th>Улучшение</th>
+                                <th>Дата анализа</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scoring Criteria Modal -->
+    <div class="modal hidden" id="criteriaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Критерии оценки ТЗ</h3>
+                <button class="modal-close" id="closeCriteriaBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="criteria-grid">
+                    <div class="criteria-item">
+                        <div class="criteria-score">25</div>
+                        <div class="criteria-name">Полнота разделов</div>
+                        <div class="criteria-desc">Все 6 обязательных разделов присутствуют и содержат существенную информацию</div>
+                    </div>
+                    <div class="criteria-item">
+                        <div class="criteria-score">20</div>
+                        <div class="criteria-name">Ссылки на документы</div>
+                        <div class="criteria-desc">Конкретные номера пунктов стратегических документов указаны в разделе 3</div>
+                    </div>
+                    <div class="criteria-item">
+                        <div class="criteria-score">20</div>
+                        <div class="criteria-name">Количественные результаты</div>
+                        <div class="criteria-desc">Конкретные числовые показатели для всех видов результатов в разделе 4.1</div>
+                    </div>
+                    <div class="criteria-item">
+                        <div class="criteria-score">15</div>
+                        <div class="criteria-name">Разбор бюджета</div>
+                        <div class="criteria-desc">Разбивка финансирования по годам в разделе 5</div>
+                    </div>
+                    <div class="criteria-item">
+                        <div class="criteria-score">10</div>
+                        <div class="criteria-name">Логическая согласованность</div>
+                        <div class="criteria-desc">Задачи приводят к достижению цели, результаты соответствуют задачам</div>
+                    </div>
+                    <div class="criteria-item">
+                        <div class="criteria-score">10</div>
+                        <div class="criteria-name">Ясность языка</div>
+                        <div class="criteria-desc">Четкий, конкретный язык без расплывчатых формулировок</div>
+                    </div>
+                </div>
+                <div class="criteria-total">
+                    <strong>Итого: 100 баллов</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Анализ документа...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Version History Modal -->
+    <div class="modal hidden" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>История версий</h3>
+                <button class="modal-close" id="closeHistoryBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="version-timeline" id="versionTimeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

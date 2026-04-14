@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tz-analyzer-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - tz-network
+    
+
+  nginx:
+    image: nginx:alpine
+    container_name: tz-analyzer-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/uploads:/app/uploads:ro
+    networks:
+      - tz-network
+    depends_on:
+      - backend
+
+networks:
+  tz-network:
+    driver: bridge
+
+volumes:
+  uploads:
+    driver: local
