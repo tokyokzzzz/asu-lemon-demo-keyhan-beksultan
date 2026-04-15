@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from services.document_parser import extract_text_from_file, detect_document_structure
 from services.gemini_service import analyze_document, apply_correction
-from services.docx_generator import generate_corrected_docx
+from services.docx_generator import create_docx_from_text
 from services.excel_service import add_score_record, update_corrected_score, export_to_excel, get_all_records
 
 router = APIRouter(prefix="/api")
@@ -89,9 +89,9 @@ async def analyze(file: UploadFile = File(...)):
 
         structure = detect_document_structure(document_text)
 
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
-            error_msg = "GEMINI_API_KEY environment variable not set"
+            error_msg = "ANTHROPIC_API_KEY environment variable not set"
             _log_error(error_msg)
             raise HTTPException(status_code=500, detail=error_msg)
 
@@ -187,9 +187,9 @@ async def apply_fix(request: ApplyFixRequest):
 
         user_instruction = request.custom_instruction or "Please fix the selected issues in the document."
 
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable not set")
+            raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY environment variable not set")
 
         correction_result = await apply_correction(
             original_text,
@@ -202,13 +202,11 @@ async def apply_fix(request: ApplyFixRequest):
             raise HTTPException(status_code=500, detail="Invalid response from correction service")
 
         language = analysis_result.get("language", "russian")
-        corrected_sections = {
-            "corrected_text": correction_result.get("corrected_text", "")
-        }
+        corrected_text = correction_result.get("corrected_text", "")
 
-        corrected_file_path = generate_corrected_docx(
-            file_info["file_path"],
-            corrected_sections,
+        corrected_file_path = create_docx_from_text(
+            corrected_text,
+            file_info["filename"],
             language
         )
 

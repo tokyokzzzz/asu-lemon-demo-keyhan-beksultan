@@ -3,233 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TZ Analyzer - Анализ технических заданий</title>
+    <title>TZ Analyzer — Анализ технических заданий</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Animated background orbs -->
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h1 class="logo">TZ Analyzer</h1>
+    <aside class="sidebar glass">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 12h6M9 16h6M9 8h6M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                </svg>
+            </div>
+            <span class="brand-name">TZ Analyzer</span>
         </div>
+
         <nav class="sidebar-nav">
             <a href="#" class="nav-link active" data-page="upload">
-                <span class="nav-icon">📄</span>
-                <span class="nav-text">Анализ</span>
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span>Анализ</span>
             </a>
             <a href="#" class="nav-link" data-page="history">
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">История оценок</span>
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span>История</span>
             </a>
         </nav>
+
         <div class="sidebar-footer">
-            <div class="language-badge" id="languageBadge">РУС</div>
+            <div class="lang-badge" id="languageBadge">РУС</div>
         </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Header -->
-        <header class="app-header">
-            <h2 id="pageTitle">Анализ ТЗ</h2>
+        <!-- Top bar -->
+        <header class="topbar">
+            <h2 class="page-title" id="pageTitle">Анализ ТЗ</h2>
+            <div class="topbar-actions">
+                <div class="status-dot" id="statusDot" title="Сервер доступен"></div>
+            </div>
         </header>
 
         <!-- Upload Page -->
         <div class="page" id="uploadPage" data-page="upload">
-            <div class="upload-container">
-                <div class="upload-zone-header">
-                    <h3>Загрузить документ</h3>
-                    <div class="header-buttons-upload">
-                        <button class="btn btn-icon" id="infoBtn" title="Информация о критериях оценки">ℹ️</button>
-                        <button class="btn btn-secondary" id="demoBtn">Демо</button>
+            <div class="upload-hero">
+                <div class="upload-card glass">
+                    <div class="upload-card-header">
+                        <div>
+                            <h3>Загрузить документ ТЗ</h3>
+                            <p class="upload-subtitle-text">Поддерживаются форматы .docx и .pdf до 10 MB</p>
+                        </div>
+                        <div class="upload-actions">
+                            <button class="btn btn-ghost" id="infoBtn" title="Критерии оценки">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                Критерии
+                            </button>
+                            <button class="btn btn-outline" id="demoBtn">Демо-режим</button>
+                        </div>
+                    </div>
+
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-zone-inner">
+                            <div class="upload-icon-wrap">
+                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M40 30v6a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4v-6"/>
+                                    <polyline points="32 16 24 8 16 16"/>
+                                    <line x1="24" y1="8" x2="24" y2="30"/>
+                                </svg>
+                            </div>
+                            <p class="upload-main-text">Перетащите файл сюда</p>
+                            <p class="upload-or">или</p>
+                            <button class="btn btn-primary" id="browseBtn">Выбрать файл</button>
+                            <input type="file" id="fileInput" hidden accept=".docx,.pdf">
+                        </div>
                     </div>
                 </div>
-                <div class="upload-zone" id="uploadZone">
-                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <p class="upload-text">Перетащите файл ТЗ или нажмите для выбора</p>
-                    <p class="upload-subtitle">Поддерживаются форматы .docx и .pdf</p>
-                    <button class="btn btn-secondary" id="browseBtn">Выбрать файл</button>
-                    <input type="file" id="fileInput" hidden accept=".docx,.pdf">
+
+                <!-- Features strip -->
+                <div class="features-strip">
+                    <div class="feature-item glass">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-text">
+                            <strong>ИИ-анализ</strong>
+                            <span>Claude Sonnet 4.6</span>
+                        </div>
+                    </div>
+                    <div class="feature-item glass">
+                        <div class="feature-icon">📋</div>
+                        <div class="feature-text">
+                            <strong>По нормативам РК</strong>
+                            <span>laws.pdf источник истины</span>
+                        </div>
+                    </div>
+                    <div class="feature-item glass">
+                        <div class="feature-icon">📥</div>
+                        <div class="feature-text">
+                            <strong>Экспорт DOCX</strong>
+                            <span>Исправленное ТЗ</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Results Page -->
         <div class="page hidden" id="resultsPage" data-page="results">
-            <!-- Score Header -->
-            <section class="score-header">
-                <div class="score-gauge-container">
-                    <svg class="score-gauge" viewBox="0 0 200 200">
-                        <circle cx="100" cy="100" r="80" class="gauge-background"></circle>
-                        <circle cx="100" cy="100" r="80" class="gauge-foreground" id="gaugeForeground"></circle>
-                    </svg>
-                    <div class="score-text">
-                        <div class="score-number" id="scoreNumber">0</div>
-                        <div class="score-label">из 100</div>
+            <!-- Score Hero -->
+            <section class="score-hero">
+                <div class="score-card glass">
+                    <div class="score-gauge-wrap">
+                        <svg class="score-gauge" viewBox="0 0 200 200">
+                            <defs>
+                                <linearGradient id="gaugeGradLow" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ff6b6b"/>
+                                    <stop offset="100%" stop-color="#ee5a24"/>
+                                </linearGradient>
+                                <linearGradient id="gaugeGradMid" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd32a"/>
+                                    <stop offset="100%" stop-color="#ff9f43"/>
+                                </linearGradient>
+                                <linearGradient id="gaugeGradHigh" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#0be881"/>
+                                    <stop offset="100%" stop-color="#00d2d3"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="100" cy="100" r="80" class="gauge-bg"/>
+                            <circle cx="100" cy="100" r="80" class="gauge-fg" id="gaugeForeground"/>
+                        </svg>
+                        <div class="score-overlay">
+                            <div class="score-number" id="scoreNumber">0</div>
+                            <div class="score-label">из 100</div>
+                        </div>
+                    </div>
+                    <div class="score-meta">
+                        <h2 class="result-filename" id="resultFilename">—</h2>
+                        <div class="result-lang">
+                            <span class="lang-badge" id="resultLanguageBadge">РУС</span>
+                            <span id="resultLanguageText">Русский язык</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn btn-primary" id="downloadCorrectedBtn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Скачать исправленный DOCX
+                            </button>
+                            <button class="btn btn-outline" id="exportExcelBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                                Экспорт Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="header-info">
-                    <h2 id="resultFilename">Имя файла</h2>
-                    <div class="info-row">
-                        <span class="language-badge" id="resultLanguageBadge">РУС</span>
-                        <span id="resultLanguageText">Русский язык</span>
-                    </div>
-                    <div class="header-buttons">
-                        <button class="btn btn-primary" id="downloadCorrectedBtn" disabled>Скачать исправленную версию</button>
-                        <button class="btn btn-secondary" id="exportExcelBtn">Экспорт Excel</button>
+
+                <!-- Score comparison (hidden initially) -->
+                <div class="comparison-card glass hidden" id="scoreComparison">
+                    <div class="comparison-label-text">Результат исправления</div>
+                    <div class="comparison-scores">
+                        <div class="cmp-score before">
+                            <div class="cmp-val" id="comparisonBefore">—</div>
+                            <div class="cmp-lbl">До</div>
+                        </div>
+                        <div class="cmp-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </div>
+                        <div class="cmp-score after">
+                            <div class="cmp-val" id="comparisonAfter">—</div>
+                            <div class="cmp-lbl">После</div>
+                        </div>
+                        <div class="cmp-improvement" id="comparisonImprovement"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Score Comparison -->
-            <section class="score-comparison hidden" id="scoreComparison">
-                <div class="comparison-box before">
-                    <div class="comparison-label">До исправления</div>
-                    <div class="comparison-score" id="comparisonBefore">62</div>
-                </div>
-                <div class="comparison-arrow">→</div>
-                <div class="comparison-box after">
-                    <div class="comparison-label">После исправления</div>
-                    <div class="comparison-score" id="comparisonAfter">85</div>
-                    <div class="comparison-improvement" id="comparisonImprovement">+23</div>
-                </div>
-            </section>
-
-            <!-- Version History -->
+            <!-- Version History (inline) -->
             <section class="version-history" id="versionHistory"></section>
 
             <!-- Score Breakdown -->
-            <section class="score-breakdown">
-                <h3>Разбор оценки</h3>
+            <section class="result-section glass">
+                <h3 class="section-title">Разбор оценки</h3>
                 <div class="breakdown-bars" id="breakdownBars"></div>
             </section>
 
-            <!-- Issues Section -->
-            <section class="issues-section">
-                <h3>Выявленные проблемы</h3>
+            <!-- Issues -->
+            <section class="result-section glass">
+                <h3 class="section-title">
+                    Выявленные проблемы
+                    <span class="issues-count" id="issuesCount"></span>
+                </h3>
                 <div class="issues-list" id="issuesList"></div>
             </section>
 
-            <!-- Suggestions Section -->
-            <section class="suggestions-section">
-                <h3>Рекомендации</h3>
+            <!-- Suggestions -->
+            <section class="result-section glass">
+                <h3 class="section-title">Рекомендации</h3>
                 <ol class="suggestions-list" id="suggestionsList"></ol>
             </section>
 
-            <!-- Summary Section -->
-            <section class="summary-section">
-                <h3>Общая оценка</h3>
+            <!-- Summary -->
+            <section class="result-section glass summary-section">
+                <h3 class="section-title">Общая оценка ИИ</h3>
                 <p class="summary-text" id="summaryText"></p>
             </section>
 
-            <!-- Action Buttons -->
-            <section class="action-buttons">
-                <button class="btn btn-primary" id="applyFixesBtn">Применить выбранные исправления</button>
-                <button class="btn btn-secondary" id="resetBtn">Сбросить</button>
+            <!-- Bottom actions -->
+            <section class="result-actions-bar">
+                <button class="btn btn-primary btn-lg" id="applyFixesBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <polyline points="9 11 12 14 22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    Применить выбранные исправления
+                </button>
+                <button class="btn btn-outline" id="resetBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="1 4 1 10 7 10"/>
+                        <path d="M3.51 15a9 9 0 1 0 .49-4.02"/>
+                    </svg>
+                    Новый анализ
+                </button>
             </section>
         </div>
 
         <!-- History Page -->
         <div class="page hidden" id="historyPage" data-page="history">
-            <div class="history-container">
-                <button class="btn btn-primary" id="exportAllBtn">Экспорт всех оценок в Excel</button>
-                <div class="table-responsive">
+            <div class="history-wrap">
+                <div class="history-header glass">
+                    <h3>История оценок</h3>
+                    <button class="btn btn-outline" id="exportAllBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Экспорт всех в Excel
+                    </button>
+                </div>
+                <div class="table-wrap glass">
                     <table class="records-table" id="recordsTable">
                         <thead>
                             <tr>
                                 <th>Файл</th>
                                 <th>Язык</th>
-                                <th>Оценка до</th>
-                                <th>Оценка после</th>
+                                <th>Оценка</th>
+                                <th>После исправления</th>
                                 <th>Улучшение</th>
-                                <th>Дата анализа</th>
+                                <th>Дата</th>
                             </tr>
                         </thead>
-                        <tbody id="recordsTableBody">
-                        </tbody>
+                        <tbody id="recordsTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Scoring Criteria Modal -->
-    <div class="modal hidden" id="criteriaModal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Criteria Modal -->
+    <div class="modal-overlay hidden" id="criteriaModal">
+        <div class="modal-box glass">
+            <div class="modal-head">
                 <h3>Критерии оценки ТЗ</h3>
-                <button class="modal-close" id="closeCriteriaBtn">&times;</button>
+                <button class="modal-close" id="closeCriteriaBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="criteria-grid">
-                    <div class="criteria-item">
-                        <div class="criteria-score">25</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">25</div>
                         <div class="criteria-name">Полнота разделов</div>
                         <div class="criteria-desc">Все 6 обязательных разделов присутствуют и содержат существенную информацию</div>
                     </div>
-                    <div class="criteria-item">
-                        <div class="criteria-score">20</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">20</div>
                         <div class="criteria-name">Ссылки на документы</div>
-                        <div class="criteria-desc">Конкретные номера пунктов стратегических документов указаны в разделе 3</div>
+                        <div class="criteria-desc">Конкретные номера пунктов стратегических документов в разделе 3</div>
                     </div>
-                    <div class="criteria-item">
-                        <div class="criteria-score">20</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">20</div>
                         <div class="criteria-name">Количественные результаты</div>
-                        <div class="criteria-desc">Конкретные числовые показатели для всех видов результатов в разделе 4.1</div>
+                        <div class="criteria-desc">Числовые показатели для всех видов результатов в разделе 4.1</div>
                     </div>
-                    <div class="criteria-item">
-                        <div class="criteria-score">15</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">15</div>
                         <div class="criteria-name">Разбор бюджета</div>
                         <div class="criteria-desc">Разбивка финансирования по годам в разделе 5</div>
                     </div>
-                    <div class="criteria-item">
-                        <div class="criteria-score">10</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">10</div>
                         <div class="criteria-name">Логическая согласованность</div>
-                        <div class="criteria-desc">Задачи приводят к достижению цели, результаты соответствуют задачам</div>
+                        <div class="criteria-desc">Задачи приводят к цели, результаты соответствуют задачам</div>
                     </div>
-                    <div class="criteria-item">
-                        <div class="criteria-score">10</div>
+                    <div class="criteria-card">
+                        <div class="criteria-pts">10</div>
                         <div class="criteria-name">Ясность языка</div>
-                        <div class="criteria-desc">Четкий, конкретный язык без расплывчатых формулировок</div>
+                        <div class="criteria-desc">Конкретный язык без расплывчатых формулировок</div>
                     </div>
                 </div>
-                <div class="criteria-total">
-                    <strong>Итого: 100 баллов</strong>
-                </div>
+                <div class="criteria-total">Итого: <strong>100 баллов</strong></div>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- AI Loading Overlay -->
     <div class="loading-overlay hidden" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p>Анализ документа...</p>
+        <div class="loading-card glass">
+            <div class="ai-spinner">
+                <div class="ai-ring ring-1"></div>
+                <div class="ai-ring ring-2"></div>
+                <div class="ai-ring ring-3"></div>
+                <div class="ai-core">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28">
+                        <path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-8 0v-1H7a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="loading-texts">
+                <p class="loading-title" id="loadingTitle">ИИ анализирует документ</p>
+                <p class="loading-dots"><span></span><span></span><span></span></p>
+                <p class="loading-hint" id="loadingHint">Проверка структуры ТЗ...</p>
+            </div>
         </div>
     </div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Version History Modal -->
-    <div class="modal hidden" id="historyModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>История версий</h3>
-                <button class="modal-close" id="closeHistoryBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="version-timeline" id="versionTimeline"></div>
-            </div>
-        </div>
-    </div>
 
     <script src="app.js"></script>
 </body>

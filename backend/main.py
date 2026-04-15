@@ -6,9 +6,9 @@ from fastapi.staticfiles import StaticFiles
 from routers.analysis import router as analysis_router
 
 # Load and validate environment variables
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY environment variable is not set")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+if not ANTHROPIC_API_KEY:
+    raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
 
 app = FastAPI(title="TZ Analyzer API", version="1.0.0")
 
@@ -37,23 +37,25 @@ async def startup_event():
     os.makedirs("uploads", exist_ok=True)
     print(f"[{timestamp}] ✓ Uploads directory ready")
 
-    # Validate GEMINI_API_KEY
-    if not os.getenv("GEMINI_API_KEY"):
-        raise ValueError("GEMINI_API_KEY environment variable is not set")
+    # Validate ANTHROPIC_API_KEY
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
 
-    # Test Gemini API connection
+    # Test Anthropic API connection
     try:
-        import google.generativeai as genai
-        api_key = os.getenv("GEMINI_API_KEY")
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content("Reply with OK")
-        if response and response.text:
-            print(f"[{timestamp}] ✓ Gemini API connection successful")
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=10,
+            messages=[{"role": "user", "content": "Reply with OK"}],
+        )
+        if response.content:
+            print(f"[{timestamp}] ✓ Anthropic API connection successful")
         else:
-            print(f"[{timestamp}] ⚠ Gemini API response empty")
+            print(f"[{timestamp}] ⚠ Anthropic API response empty")
     except Exception as e:
-        print(f"[{timestamp}] ❌ Gemini API connection failed: {str(e)}")
+        print(f"[{timestamp}] ❌ Anthropic API connection failed: {str(e)}")
         
 
     print(f"[{timestamp}] ✓ TZ Analyzer API ready")
