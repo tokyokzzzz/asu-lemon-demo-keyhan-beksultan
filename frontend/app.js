@@ -16,12 +16,13 @@ const DEMO_DATA = {
     filename: "sample_tz.docx",
     original_score: 58,
     score_breakdown: {
-        section_completeness: 20,
-        strategic_references: 8,
-        quantitative_results: 12,
-        budget_breakdown: 10,
-        logical_consistency: 5,
-        language_clarity: 3
+        strategic_relevance: 12,
+        goals_and_tasks: 6,
+        scientific_novelty: 9,
+        practical_applicability: 12,
+        expected_results: 10,
+        socioeconomic_impact: 6,
+        feasibility: 3
     },
     language: "russian",
     issues: [
@@ -229,25 +230,13 @@ async function applySelectedFixes() {
         }
 
         const data = await response.json();
-        const oldScore = STATE.currentResults.original_score;
-        STATE.currentResults.original_score = data.new_score;
-        STATE.currentVersion += 1;
-        STATE.versionHistory.push({
-            version: STATE.currentVersion,
-            score: data.new_score,
-            timestamp: new Date().toLocaleString('ru-RU'),
-            changes: data.changes_made,
-            resultsSnapshot: JSON.parse(JSON.stringify(STATE.currentResults))
-        });
 
+        // Enable download — that's the only action after correction
         downloadCorrectedBtn.disabled = false;
         downloadCorrectedBtn.onclick = () => downloadFile(data.download_url);
 
-        showScoreComparison(oldScore, data.new_score);
-        animateScoreGaugeFromTo(oldScore, data.new_score);
-        renderVersionHistory();
         document.querySelectorAll('.issue-checkbox').forEach(cb => cb.checked = false);
-        showToast('Исправления успешно применены', 'success');
+        showToast('Исправленный документ готов — нажмите «Скачать»', 'success');
     } catch (error) {
         showToast(`Ошибка: ${error.message}`, 'error');
     } finally {
@@ -383,12 +372,13 @@ function renderScoreBreakdown(breakdown) {
     container.innerHTML = '';
 
     const cats = [
-        { key: 'section_completeness',  label: 'Полнота разделов',           max: 25 },
-        { key: 'strategic_references',  label: 'Ссылки на документы',        max: 20 },
-        { key: 'quantitative_results',  label: 'Количественные результаты',  max: 20 },
-        { key: 'budget_breakdown',      label: 'Разбор бюджета',             max: 15 },
-        { key: 'logical_consistency',   label: 'Логическая согласованность', max: 10 },
-        { key: 'language_clarity',      label: 'Ясность языка',             max: 10 }
+        { key: 'strategic_relevance',     label: 'Стратегическая релевантность', max: 20 },
+        { key: 'goals_and_tasks',         label: 'Цель и задачи',                max: 10 },
+        { key: 'scientific_novelty',      label: 'Научная новизна',              max: 15 },
+        { key: 'practical_applicability', label: 'Практическая применимость',    max: 20 },
+        { key: 'expected_results',        label: 'Ожидаемые результаты',         max: 15 },
+        { key: 'socioeconomic_impact',    label: 'Соц-экономический эффект',     max: 10 },
+        { key: 'feasibility',             label: 'Реализуемость',                max: 10 }
     ];
 
     cats.forEach((cat, i) => {
@@ -435,6 +425,12 @@ function renderIssues(issues) {
     issues.forEach((issue, index) => {
         const card = document.createElement('div');
         card.className = `issue-card severity-${issue.severity}`;
+        const lawQuoteHtml = issue.law_quote ? `
+                <div>
+                    <div class="issue-block-label">Основание (нормативный документ)</div>
+                    <div class="law-block">${escapeHtml(issue.law_quote)}</div>
+                </div>` : '';
+
         card.innerHTML = `
             <div class="issue-header">
                 <div class="issue-header-left">
@@ -452,6 +448,7 @@ function renderIssues(issues) {
                     <div class="issue-block-label">Проблемный текст</div>
                     <div class="code-block">${escapeHtml(issue.original_text)}</div>
                 </div>
+                ${lawQuoteHtml}
                 <div>
                     <div class="issue-block-label">Предложенное исправление</div>
                     <div class="fix-block">${escapeHtml(issue.suggested_fix)}</div>

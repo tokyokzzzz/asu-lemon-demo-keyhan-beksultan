@@ -1,30 +1,50 @@
+import json
+import os
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-SCORE_RECORDS: List[Dict[str, Any]] = []
+RECORDS_FILE = "uploads/records.json"
+
+# Expert evaluation columns with their max scores
+EXPERT_COLUMNS = [
+    ("Стратегическая релевантность (20%)", "strategic_relevance", 20),
+    ("Цель и задачи (10%)", "goals_and_tasks", 10),
+    ("Научная новизна (15%)", "scientific_novelty", 15),
+    ("Практическая применимость (20%)", "practical_applicability", 20),
+    ("Ожидаемые результаты (15%)", "expected_results", 15),
+    ("Соц-экономический эффект (10%)", "socioeconomic_impact", 10),
+    ("Реализуемость (10%)", "feasibility", 10),
+]
+
+
+def _load_records() -> List[Dict[str, Any]]:
+    if not os.path.exists(RECORDS_FILE):
+        return []
+    try:
+        with open(RECORDS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_records(records: List[Dict[str, Any]]) -> None:
+    os.makedirs("uploads", exist_ok=True)
+    with open(RECORDS_FILE, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
 
 
 def add_score_record(
     filename: str,
     original_score: int,
     language: str,
-    corrected_score: Optional[int] = None
+    corrected_score: Optional[int] = None,
+    score_breakdown: Optional[Dict[str, int]] = None,
 ) -> Dict[str, Any]:
-    """
-    Add a new score record to the in-memory storage.
-
-    Args:
-        filename: Name of the analyzed file
-        original_score: Score before correction (0-100)
-        language: Language of document (russian or kazakh)
-        corrected_score: Score after correction (optional)
-
-    Returns:
-        The created record dictionary
-    """
+    records = _load_records()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     record = {
@@ -32,116 +52,111 @@ def add_score_record(
         "original_score": original_score,
         "corrected_score": corrected_score,
         "language": language,
-        "timestamp": timestamp
+        "timestamp": timestamp,
+        "score_breakdown": score_breakdown or {},
+        "organization": "",
+        "expert": "",
+        "comment": "",
     }
 
-    SCORE_RECORDS.append(record)
+    records.append(record)
+    _save_records(records)
     return record
 
 
 def update_corrected_score(filename: str, corrected_score: int) -> bool:
-    """
-    Update the corrected score for the most recent record with given filename.
-
-    Args:
-        filename: Name of the file to update
-        corrected_score: New corrected score
-
-    Returns:
-        True if record was found and updated, False otherwise
-    """
-    for i in range(len(SCORE_RECORDS) - 1, -1, -1):
-        if SCORE_RECORDS[i]["filename"] == filename:
-            SCORE_RECORDS[i]["corrected_score"] = corrected_score
+    records = _load_records()
+    for i in range(len(records) - 1, -1, -1):
+        if records[i]["filename"] == filename:
+            records[i]["corrected_score"] = corrected_score
+            _save_records(records)
             return True
-
     return False
 
 
 def export_to_excel() -> str:
-    """
-    Export all score records to an Excel file.
+    records = _load_records()
 
-    Returns:
-        Path to the created Excel file
-    """
     wb = Workbook()
     ws = wb.active
-    ws.title = "TZ Scores"
+    ws.title = "Экспертная оценка"
 
-    headers = ["Файл", "Язык", "Оценка до", "Оценка после", "Улучшение", "Дата анализа"]
+    # Header row
+    headers = ["№", "Название ТЗ", "Организация", "Эксперт"]
+    headers += [col[0] for col in EXPERT_COLUMNS]
+    headers += ["Итоговый балл", "Комментарий эксперта"]
 
-    header_fill = PatternFill(start_color="ADD8E6", end_color="ADD8E6", fill_type="solid")
-    header_font = Font(bold=True, color="000000")
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=10)
+    thin = Side(style="thin", color="000000")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
     for col_num, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col_num)
         cell.value = header
         cell.fill = header_fill
         cell.font = header_font
-        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = border
 
-    for row_num, record in enumerate(SCORE_RECORDS, 2):
-        original_score = record.get("original_score", 0)
-        corrected_score = record.get("corrected_score")
+    ws.row_dimensions[1].height = 45
 
-        ws.cell(row=row_num, column=1).value = record.get("filename", "")
-        ws.cell(row=row_num, column=2).value = record.get("language", "")
-        ws.cell(row=row_num, column=3).value = original_score
+    # Data rows
+    for row_num, record in enumerate(records, 2):
+        breakdown = record.get("score_breakdown", {})
+        total_score = record.get("original_score", 0)
 
-        if corrected_score is not None:
-            ws.cell(row=row_num, column=4).value = corrected_score
-            improvement = corrected_score - original_score
-            ws.cell(row=row_num, column=5).value = f"+{improvement}" if improvement > 0 else str(improvement)
-        else:
-            ws.cell(row=row_num, column=4).value = "-"
-            ws.cell(row=row_num, column=5).value = "-"
+        row_data = [
+            row_num - 1,
+            record.get("filename", ""),
+            record.get("organization", ""),
+            record.get("expert", ""),
+        ]
+        row_data += [breakdown.get(col[1], "") for col in EXPERT_COLUMNS]
+        row_data += [total_score, record.get("comment", "")]
 
-        ws.cell(row=row_num, column=6).value = record.get("timestamp", "")
+        for col_num, value in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.value = value
+            cell.border = border
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-        score_cell = ws.cell(row=row_num, column=3)
-        if original_score < 50:
+        # Color total score cell
+        score_col = len(headers)  # last column before comment
+        score_col_idx = headers.index("Итоговый балл") + 1
+        score_cell = ws.cell(row=row_num, column=score_col_idx)
+        if total_score < 50:
             score_cell.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
             score_cell.font = Font(color="FFFFFF", bold=True)
-        elif original_score < 75:
-            score_cell.fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+        elif total_score < 75:
+            score_cell.fill = PatternFill(start_color="FFD700", end_color="FFD700", fill_type="solid")
             score_cell.font = Font(color="000000", bold=True)
         else:
             score_cell.fill = PatternFill(start_color="00B050", end_color="00B050", fill_type="solid")
             score_cell.font = Font(color="FFFFFF", bold=True)
 
-        for col in range(1, 7):
-            ws.cell(row=row_num, column=col).alignment = Alignment(
-                horizontal="center",
-                vertical="center"
-            )
+        # Alternate row shading
+        if row_num % 2 == 0:
+            row_fill = PatternFill(start_color="EBF3FB", end_color="EBF3FB", fill_type="solid")
+            for col_num in range(1, len(headers) + 1):
+                c = ws.cell(row=row_num, column=col_num)
+                if not c.fill or c.fill.fgColor.rgb in ("00000000", "FFFFFFFF"):
+                    c.fill = row_fill
 
-    ws.column_dimensions['A'].width = 30
-    ws.column_dimensions['B'].width = 15
-    ws.column_dimensions['C'].width = 12
-    ws.column_dimensions['D'].width = 12
-    ws.column_dimensions['E'].width = 12
-    ws.column_dimensions['F'].width = 20
+    # Column widths
+    col_widths = [5, 35, 20, 20] + [14] * len(EXPERT_COLUMNS) + [14, 30]
+    for i, width in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = width
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = f"scores_export_{timestamp}.xlsx"
-    output_path = f"uploads/{output_filename}"
-
+    output_path = f"uploads/expert_scores_{timestamp}.xlsx"
     wb.save(output_path)
     return output_path
 
 
 def get_all_records() -> List[Dict[str, Any]]:
-    """
-    Get all score records.
-
-    Returns:
-        List of all score record dictionaries
-    """
-    return SCORE_RECORDS.copy()
+    return _load_records()
 
 
 def clear_records() -> None:
-    """Clear all records from memory."""
-    global SCORE_RECORDS
-    SCORE_RECORDS = []
+    _save_records([])

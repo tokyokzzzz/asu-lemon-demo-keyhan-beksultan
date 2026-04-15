@@ -21,8 +21,19 @@ UPLOAD_DIR = "uploads"
 MAX_FILE_SIZE = 10 * 1024 * 1024
 ALLOWED_EXTENSIONS = {".docx", ".pdf"}
 
-# In-memory storage for file mappings
+# In-memory storage for file mappings (session-scoped, not persisted)
+# Note: cleared on restart — users must re-upload if backend restarts between
+# analysis and fix. Acceptable trade-off vs. persisting large document texts.
 FILE_MAPPINGS: Dict[str, Dict[str, Any]] = {}
+_MAX_MAPPINGS = 50  # keep memory bounded
+
+
+def _trim_mappings():
+    """Keep only the most recent N file mappings to avoid unbounded memory growth."""
+    if len(FILE_MAPPINGS) > _MAX_MAPPINGS:
+        oldest_keys = list(FILE_MAPPINGS.keys())[:-_MAX_MAPPINGS]
+        for k in oldest_keys:
+            del FILE_MAPPINGS[k]
 
 
 class ApplyFixRequest(BaseModel):
@@ -117,9 +128,11 @@ async def analyze(file: UploadFile = File(...)):
         add_score_record(
             filename=file.filename,
             original_score=analysis_result.get("original_score", 0),
-            language=analysis_result.get("language", "russian")
+            language=analysis_result.get("language", "russian"),
+            score_breakdown=analysis_result.get("score_breakdown", {})
         )
 
+        _trim_mappings()
         FILE_MAPPINGS[file_id] = {
             "filename": file.filename,
             "file_path": file_path,
@@ -191,11 +204,13 @@ async def apply_fix(request: ApplyFixRequest):
         if not api_key:
             raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY environment variable not set")
 
+        original_score = analysis_result.get("original_score", 0)
         correction_result = await apply_correction(
             original_text,
             selected_issues,
             user_instruction,
-            api_key
+            api_key,
+            original_score=original_score
         )
 
         if not isinstance(correction_result, dict):
