@@ -118,7 +118,43 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModalListeners();
     loadHistory();
     setupDemoMode();
+    setupHamburger();
 });
+
+// ============================================
+// HAMBURGER / MOBILE SIDEBAR
+// ============================================
+function setupHamburger() {
+    const btn = document.getElementById('hamburgerBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (!btn || !sidebar || !overlay) return;
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', () => {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar on nav link click (mobile)
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 680) closeSidebar();
+        });
+    });
+}
 
 // ============================================
 // DRAG AND DROP

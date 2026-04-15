@@ -1390,21 +1390,194 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
 /* ============================================
-   RESPONSIVE
+   HAMBURGER BUTTON (hidden on desktop)
+   ============================================ */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background var(--transition);
+}
+.hamburger:hover { background: rgba(255,255,255,0.08); }
+.hamburger span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--text-primary);
+    transition: var(--transition);
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Sidebar overlay (mobile backdrop) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ============================================
+   TABLET (≤ 900px) — icon-only sidebar
    ============================================ */
 @media (max-width: 900px) {
     :root { --sidebar-w: 64px; }
     .brand-name, .nav-link span { display: none; }
-    .sidebar-brand { justify-content: center; }
+    .sidebar-brand { justify-content: center; margin-bottom: 24px; }
     .nav-link { justify-content: center; padding: 12px; }
     .sidebar-footer { text-align: center; }
     .score-hero { grid-template-columns: 1fr; }
+    .comparison-card { min-width: unset; }
 }
 
-@media (max-width: 640px) {
-    .features-strip { grid-template-columns: 1fr; }
-    .criteria-grid { grid-template-columns: 1fr; }
-    .score-card { flex-direction: column; align-items: flex-start; }
-    .upload-card-header { flex-direction: column; }
-    .upload-actions { width: 100%; }
+/* ============================================
+   MOBILE (≤ 680px) — off-canvas sidebar
+   ============================================ */
+@media (max-width: 680px) {
+    :root {
+        --sidebar-w: 240px;
+        --topbar-h: 56px;
+    }
+
+    /* Show hamburger */
+    .hamburger { display: flex; }
+
+    /* Sidebar: hidden off-screen by default */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        z-index: 100;
+        width: var(--sidebar-w) !important;
+        border-right: 1px solid var(--glass-border);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Restore labels inside sidebar on mobile */
+    .brand-name, .nav-link span { display: unset; }
+    .sidebar-brand { justify-content: flex-start; margin-bottom: 32px; }
+    .nav-link { justify-content: flex-start; padding: 10px 14px; }
+    .sidebar-footer { text-align: left; }
+
+    /* Main content takes full width */
+    .main-content { margin-left: 0; }
+
+    /* Topbar */
+    .topbar { padding: 0 16px; gap: 10px; }
+    .page-title { font-size: 15px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Pages */
+    .page { padding: 16px; }
+
+    /* Upload */
+    .upload-hero { gap: 14px; }
+    .upload-card { padding: 18px; }
+    .upload-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .upload-actions { width: 100%; justify-content: flex-start; }
+    .upload-zone-inner { padding: 32px 16px; }
+    .upload-icon-wrap { width: 52px; height: 52px; }
+    .upload-icon-wrap svg { width: 26px; height: 26px; }
+    .upload-main-text { font-size: 14px; }
+    .features-strip { grid-template-columns: 1fr; gap: 10px; }
+
+    /* Score card */
+    .score-hero { grid-template-columns: 1fr; }
+    .score-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        gap: 20px;
+    }
+    .score-meta { width: 100%; }
+    .result-filename {
+        white-space: normal;
+        word-break: break-all;
+        font-size: 15px;
+    }
+    .result-lang { justify-content: center; }
+    .result-actions { justify-content: center; }
+    .score-gauge-wrap,
+    .score-gauge { width: 120px; height: 120px; }
+    .score-number { font-size: 30px; }
+
+    /* Comparison card */
+    .comparison-card { min-width: unset; padding: 16px; }
+    .cmp-val { font-size: 24px; }
+
+    /* Result sections */
+    .result-section { padding: 16px; }
+
+    /* Issues */
+    .issue-header { padding: 10px 12px; }
+    .issue-description { padding: 0 12px 10px; }
+    .issue-details { padding: 0 12px 14px; }
+    .issue-section-name { font-size: 12px; }
+
+    /* Action bar */
+    .result-actions-bar { gap: 8px; }
+    .result-actions-bar .btn { flex: 1; justify-content: center; }
+
+    /* History */
+    .history-wrap { gap: 12px; }
+    .history-header { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .history-header .btn { width: 100%; justify-content: center; }
+
+    /* Table: make scrollable */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .records-table { min-width: 480px; }
+    .records-table th,
+    .records-table td { padding: 10px 12px; font-size: 12.5px; }
+
+    /* Modal */
+    .modal-overlay { padding: 12px; align-items: flex-end; }
+    .modal-box {
+        max-height: 90vh;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-radius: var(--radius) var(--radius) 0 0;
+        animation: modalSlideUp 0.3s cubic-bezier(.34,1.2,.64,1);
+    }
+    @keyframes modalSlideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
+    }
+    .modal-head { padding: 16px 18px; }
+    .modal-body { padding: 16px 18px; }
+    .criteria-grid { grid-template-columns: 1fr; gap: 10px; }
+
+    /* Loading card */
+    .loading-card { padding: 36px 24px; max-width: 320px; gap: 20px; }
+
+    /* Version history */
+    .version-history-inner { padding: 14px 16px; }
+    .version-timeline { gap: 8px; }
+    .version-item { min-width: unset; flex: 1; min-width: 120px; }
+
+    /* Toast */
+    .toast-container { bottom: 16px; right: 12px; left: 12px; }
+    .toast { max-width: 100%; }
+
+    /* Buttons full-width in upload flow */
+    .btn-lg { width: 100%; justify-content: center; }
 }
