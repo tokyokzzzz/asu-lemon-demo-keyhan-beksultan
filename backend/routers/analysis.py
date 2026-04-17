@@ -14,6 +14,7 @@ from services.document_parser import extract_text_from_file, detect_document_str
 from services.gemini_service import analyze_document, apply_correction
 from services.docx_generator import create_docx_from_text
 from services.excel_service import add_score_record, update_corrected_score, export_to_excel, get_all_records
+from services.dynamodb_service import save_analysis as dynamo_save, update_corrected_score as dynamo_update_score
 
 router = APIRouter(prefix="/api")
 
@@ -132,6 +133,11 @@ async def analyze(file: UploadFile = File(...)):
             score_breakdown=analysis_result.get("score_breakdown", {})
         )
 
+        try:
+            dynamo_save(file_id, file.filename, analysis_result, analysis_result.get("language", "russian"))
+        except Exception as dynamo_err:
+            _log_error(f"DynamoDB save failed (non-fatal): {dynamo_err}")
+
         _trim_mappings()
         FILE_MAPPINGS[file_id] = {
             "filename": file.filename,
@@ -227,6 +233,11 @@ async def apply_fix(request: ApplyFixRequest):
 
         new_score = correction_result.get("new_score", 0)
         update_corrected_score(file_info["filename"], new_score)
+
+        try:
+            dynamo_update_score(request.file_id, new_score)
+        except Exception as dynamo_err:
+            _log_error(f"DynamoDB update failed (non-fatal): {dynamo_err}")
 
         corrected_filename = Path(corrected_file_path).name
 
